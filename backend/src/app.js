@@ -12,6 +12,12 @@ const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173,http://
   .split(",")
   .map(o => o.trim());
 
+// Auto-allow Railway's public domain to fix CORS on same-origin static assets
+if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+  allowedOrigins.push(`https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
+}
+
+
 app.use(
   cors({
     origin: (origin, cb) => {
