@@ -21,10 +21,8 @@ const connectDB = async () => {
     const conn = await mongoose.connect(uri);
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
 
-    // Seed demo data only when using in-memory DB
-    if (!MONGODB_URI) {
-      await seedDemoData();
-    }
+    // Always seed demo data on first startup (skipped if users already exist)
+    await seedDemoData();
   } catch (error) {
     console.error(`❌ MongoDB connection error: ${error.message}`);
     process.exit(1);
