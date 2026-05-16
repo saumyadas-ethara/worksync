@@ -38,18 +38,35 @@ app.use("/api/dashboard", require("./routes/dashboard.routes"));
 
 // Serve built React frontend in production
 if (isProd) {
-  const frontendDist = path.join(__dirname, "../../frontend/dist");
-  app.use(express.static(frontendDist));
-  // SPA fallback — all non-API routes serve index.html
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(frontendDist, "index.html"));
-  });
+  const fs = require("fs");
+  // path.resolve from __dirname (/app/backend/src) goes up 2 levels to /app/frontend/dist
+  const frontendDist = path.resolve(__dirname, "../../frontend/dist");
+
+  if (fs.existsSync(frontendDist)) {
+    console.log(`✅ Serving frontend from: ${frontendDist}`);
+    app.use(express.static(frontendDist));
+    // SPA fallback — all non-API routes serve index.html
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(frontendDist, "index.html"));
+    });
+  } else {
+    console.error(`❌ Frontend dist not found at: ${frontendDist}`);
+    console.error("   Run: npm run build");
+    app.use((req, res) => {
+      res.status(404).json({
+        success: false,
+        message: "Frontend not built. Run npm run build first.",
+        distPath: frontendDist,
+      });
+    });
+  }
 } else {
   // 404 handler for dev
   app.use((req, res) => {
     res.status(404).json({ success: false, message: "Route not found" });
   });
 }
+
 
 // Global error handler
 app.use(errorMiddleware);
